@@ -1,6 +1,6 @@
-2026/04/06-08:51:20.771 3190 Reusing MANIFEST C:\Users\rramirez\Desktop\CMA Automation\browser-profile\Default\Local Storage\leveldb/MANIFEST-000001
-2026/04/06-08:51:20.780 3190 Recovering log #43
-2026/04/06-08:51:20.785 3190 Reusing old log C:\Users\rramirez\Desktop\CMA Automation\browser-profile\Default\Local Storage\leveldb/000043.log 
-2026/04/06-08:51:47.847 3190 Level-0 table #48: started
-2026/04/06-08:51:47.865 3190 Level-0 table #48: 29791 bytes OK
-2026/04/06-08:51:47.867 3190 Delete type=0 #43
+2026/04/07-16:24:57.939 5dfc Reusing MANIFEST C:\Users\rramirez\Desktop\CMA Automation\browser-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/04/07-16:24:57.954 5dfc Recovering log #63
+2026/04/07-16:24:57.965 5dfc Reusing old log C:\Users\rramirez\Desktop\CMA Automation\browser-profile\Default\Local Storage\leveldb/000063.log 
+2026/04/07-16:25:48.201 51b4 Level-0 table #67: started
+2026/04/07-16:25:48.212 51b4 Level-0 table #67: 30237 bytes OK
+2026/04/07-16:25:48.215 51b4 Delete type=0 #63
