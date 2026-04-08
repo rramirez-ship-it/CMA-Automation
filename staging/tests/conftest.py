@@ -1,18 +1,21 @@
 # conftest.py
 import os
-import base64
-from datetime import datetime
+import re
+import allure
 import pytest
-import pytest_html
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-AUTH_FILE = "auth.json"
+AUTH_FILE     = "auth.json"
 USER_DATA_DIR = "./browser-profile"
-REPORTS_DIR = "reports"
-SCREENSHOTS_DIR = os.path.join(REPORTS_DIR, "screenshots")
+
+# Patrón de archivos que genera Playwright con --screenshot only-on-failure
+SCREENSHOT_NAME_PATTERN = re.compile(r"^test-failed-\d+\.png$")
 
 
-# ── CLI option: pytest --browser-name firefox
+# ──────────────────────────────────────────────
+# CLI option:  pytest --browser-name firefox
+# ──────────────────────────────────────────────
 def pytest_addoption(parser):
     parser.addoption(
         "--browser-name",
@@ -23,28 +26,6 @@ def pytest_addoption(parser):
     )
 
 
-# ── Título del reporte
-def pytest_html_report_title(report):
-    report.title = "QA Automation Report – LWolf Platform"
-
-
-# ── Info de entorno en el reporte
-def pytest_configure(config):
-    config._metadata = getattr(config, "_metadata", {})
-    config._metadata["Project"] = "LWolf Staging Platform"
-    config._metadata["Environment"] = "Staging"
-    config._metadata["Base URL"] = "https://platform.stg.lwolf.com"
-
-
-# ── Columna "Description" con el docstring del test
-def pytest_html_results_table_header(cells):
-    cells.insert(2, "<th>Description</th>")
-
-
-def pytest_html_results_table_row(report, cells):
-    cells.insert(2, f"<td>{getattr(report, 'description', '')}</td>")
-
-
 @pytest.fixture(scope="session")
 def browser_name(request):
     return (
@@ -53,17 +34,20 @@ def browser_name(request):
     )
 
 
+# ──────────────────────────────────────────────
+# Browser context  (Chromium SSO persistente /
+# Firefox + WebKit con storage_state)
+# ──────────────────────────────────────────────
 @pytest.fixture(scope="session")
 def browser_context(browser_name):
     with sync_playwright() as p:
         browser_type = getattr(p, browser_name)
 
-        # ── Chromium: persistent context para preservar sesión SSO
         if browser_name == "chromium":
             if not os.path.exists(USER_DATA_DIR):
                 if os.path.exists(AUTH_FILE):
                     temp = p.chromium.launch(headless=False)
-                    ctx = temp.new_context(storage_state=AUTH_FILE)
+                    ctx  = temp.new_context(storage_state=AUTH_FILE)
                     ctx.storage_state(path=AUTH_FILE)
                     ctx.close()
                     temp.close()
@@ -84,7 +68,6 @@ def browser_context(browser_name):
                 ),
             )
 
-        # ── Firefox / WebKit
         else:
             if not os.path.exists(AUTH_FILE):
                 raise FileNotFoundError(
@@ -127,57 +110,56 @@ def page(browser_context):
     page.close()
 
 
-# ── Hook principal: screenshot embebido en el reporte HTML
+# ──────────────────────────────────────────────
+# Hook 1: screenshot en memoria → adjunto Allure
+# Se activa cuando cualquier test falla en "call"
+# Método en memoria = más confiable que leer
+# desde disco (evita caché de SO según doc oficial)
+# ──────────────────────────────────────────────
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
-    report = outcome.get_result()
+    report  = outcome.get_result()
 
-    # Guardar descripción (docstring) para la columna extra
-    report.description = str(item.function.__doc__ or "")
-
-    # ── Solo en fase "call" y solo si falló
     if report.when == "call" and report.failed:
         page = item.funcargs.get("page")
         if page is None:
             return
 
         browser_name = item.config.getoption("--browser-name", default="chromium")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        # 1. Guardar screenshot en disco
-        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
-        screenshot_path = os.path.join(
-            SCREENSHOTS_DIR, f"{item.name}_{browser_name}_{timestamp}.png"
-        )
 
         try:
-            page.screenshot(path=screenshot_path, full_page=True)
-        except Exception as e:
-            print(f"\n[screenshot] Error capturando: {e}")
-            return
-
-        # 2. Leer bytes y convertir a base64
-        try:
-            with open(screenshot_path, "rb") as f:
-                png_bytes = f.read()
-            b64 = base64.b64encode(png_bytes).decode("utf-8")
-        except Exception as e:
-            print(f"\n[screenshot] Error leyendo archivo: {e}")
-            return
-
-        # 3. Adjuntar al reporte — API oficial pytest-html:
-        #    · import pytest_html  (no "from pytest_html import extras")
-        #    · report.extras       (plural ← este era el bug)
-        #    · pytest_html.extras.png(b64_string)  para imagen embebida
-        extras = getattr(report, "extras", [])
-        extras.append(
-            pytest_html.extras.png(b64, name=f"Screenshot – {browser_name}")
-        )
-        extras.append(
-            pytest_html.extras.text(
-                f"Guardado en: {screenshot_path}",
-                name="Ruta del archivo",
+            screenshot_bytes = page.screenshot(full_page=True)
+            allure.attach(
+                screenshot_bytes,
+                name=f"Screenshot – {item.name} [{browser_name}]",
+                attachment_type=allure.attachment_type.PNG,
             )
-        )
-        report.extras = extras  # ← plural, este era el bug principal
+        except Exception as e:
+            print(f"\n[allure] Error capturando screenshot: {e}")
+
+
+# ──────────────────────────────────────────────
+# Hook 2: recolecta screenshots que Playwright
+# guardó automáticamente vía:
+#   --screenshot only-on-failure  (pyproject.toml)
+# Complementario al hook anterior
+# ──────────────────────────────────────────────
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_teardown(item, nextitem):
+    yield
+
+    try:
+        artifacts_dir = item.funcargs.get("output_path")
+        if artifacts_dir:
+            artifacts_dir_path = Path(artifacts_dir)
+            if artifacts_dir_path.is_dir():
+                for file in sorted(artifacts_dir_path.iterdir()):
+                    if file.is_file() and SCREENSHOT_NAME_PATTERN.match(file.name):
+                        allure.attach.file(
+                            str(file),
+                            name=file.name,
+                            attachment_type=allure.attachment_type.PNG,
+                        )
+    except Exception as e:
+        print(f"\n[allure teardown] Error adjuntando screenshot: {e}")
