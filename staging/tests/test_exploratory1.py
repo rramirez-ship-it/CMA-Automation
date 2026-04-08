@@ -10,7 +10,7 @@ from staging.data_test.florida_addresses import FLORIDA_ADDRESSES
 
 
 
-def test_create_CMA_Report(page):
+def test_create_CMA_Report_stg(page):
     page.goto('https://platform.stg.lwolf.com/product/select?a=cc')
     expect(page.locator('#product-select')).to_be_visible()
     page.get_by_role("link", name="Munoz Realty (STG)").click()
