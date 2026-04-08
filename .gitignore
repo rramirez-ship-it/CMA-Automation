@@ -1,0 +1,6 @@
+browser-profile/
+auth.json
+reports/allure-results/
+reports/allure-html/
+__pycache__/
+.pytest_cache/
