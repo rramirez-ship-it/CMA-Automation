@@ -1,4 +1,0 @@
-"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","7164","test_client_switcher[chromium]","staging.tests","2026-04-07","broken","2026-04-07","","test_dashboards_menu","",""
-"","21854","test_dashboard_navigation[chromium]","staging.tests","2026-04-07","passed","2026-04-07","","test_dashboards","",""
-"","20242","test_create_CMA_Report[chromium]","staging.tests","2026-04-07","passed","2026-04-07","","test_exploratory1","",""
