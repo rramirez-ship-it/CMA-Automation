@@ -1,0 +1,15 @@
+2026/04/08-12:28:55.513 1604 Reusing MANIFEST C:\Users\rramirez\Desktop\CMA Automation\browser-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/04/08-12:28:55.547 1604 Recovering log #66
+2026/04/08-12:28:55.604 1604 Reusing old log C:\Users\rramirez\Desktop\CMA Automation\browser-profile\Default\Local Storage\leveldb/000066.log 
+2026/04/08-12:29:37.858 4c64 Level-0 table #70: started
+2026/04/08-12:29:37.875 4c64 Level-0 table #70: 31315 bytes OK
+2026/04/08-12:29:37.879 4c64 Delete type=0 #66
+2026/04/08-12:29:37.880 4c64 Compacting 4@0 + 1@1 files
+2026/04/08-12:29:37.894 4c64 Generated table #71@0: 70 keys, 12179 bytes
+2026/04/08-12:29:37.894 4c64 Compacted 4@0 + 1@1 files => 12179 bytes
+2026/04/08-12:29:37.895 4c64 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/04/08-12:29:37.898 4c64 Delete type=2 #58
+2026/04/08-12:29:37.898 4c64 Delete type=2 #61
+2026/04/08-12:29:37.898 4c64 Delete type=2 #64
+2026/04/08-12:29:37.898 4c64 Delete type=2 #67
+2026/04/08-12:29:37.898 4c64 Delete type=2 #70

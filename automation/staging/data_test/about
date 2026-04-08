@@ -1,0 +1,8 @@
+
+Terminal comands: 
+1. To chose the browser: --browser=chromium(firefox or webkit)
+2. To see en real-time the test: --headed
+3. To run all the tests: pytest. To run only one test: pytest folderName/fileName
+4. To screenshots of final step: --screensot=on. Will be stored in pytest cache
+5. To record video: --video=on 
+6. To save html report of results: --html=report1.html (report1 can be any name)
