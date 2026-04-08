@@ -1,5 +1,0 @@
-[tool.pytest.ini_options]
-addopts = [
-    "--screenshot", "only-on-failure",   # Playwright guarda PNG en output_path al fallar
-    "--alluredir", "reports/allure-results",  # carpeta donde Allure escribe los resultados
-]
