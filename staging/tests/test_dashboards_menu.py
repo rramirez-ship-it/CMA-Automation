@@ -58,3 +58,5 @@ def test_client_switcher(page):
     
     # final report
     assert not failures, "\n" + "\n".join(failures)
+
+    #noou
