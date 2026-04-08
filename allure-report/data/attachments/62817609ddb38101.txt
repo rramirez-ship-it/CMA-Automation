@@ -1,0 +1,13 @@
+Stats text: Summary of Listings
+Active: 7
+Sold: 3
+Summary of Prices
+Low:
+$45,000
+Median:
+$152,500
+Average:
+$171,780
+High:
+$350,000
+Active: 7 | Sold: 3 | Total: 10

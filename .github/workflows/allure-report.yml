@@ -1,86 +1,42 @@
-name: QA Report – LWolf Platform
+name: Allure Report
 
 on:
   push:
-    branches: [main]          # corre automático en cada push a main
-  workflow_dispatch:          # también permite correrlo manualmente desde GitHub
-
-permissions:
-  contents: write             # necesario para publicar en gh-pages
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  test-and-report:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Bajar el código del repo
-      - name: Checkout código
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ── 2. Configurar Python
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Install Java
+        uses: actions/setup-java@v4
         with:
-          python-version: "3.11"
+          distribution: 'temurin'
+          java-version: '17'
 
-      # ── 3. Instalar dependencias Python
-      - name: Instalar dependencias
+      - name: Install Allure
         run: |
-          pip install pytest playwright allure-pytest
-          pip install -r requirements.txt   # si tenés más deps aquí
-          playwright install chromium --with-deps
-
-      # ── 4. Escribir auth.json desde el secret de GitHub
-      #       (ver Paso 6 de la guía para configurar esto)
-      - name: Restaurar sesión SSO
-        run: echo '${{ secrets.AUTH_JSON }}' > auth.json
-
-      # ── 5. Correr los tests en headless → genera allure-results/
-      - name: Correr tests
-        run: |
-          pytest --browser-name chromium \
-                 --alluredir reports/allure-results \
-                 --screenshot only-on-failure \
-                 -p no:headless   # quitar esta línea si los tests fallan en CI
-        env:
-          HEADLESS: "true"
-        continue-on-error: true   # que el workflow siga aunque fallen tests
-
-      # ── 6. Bajar el historial previo de gh-pages para que Allure
-      #       muestre la evolución de runs anteriores
-      - name: Bajar historial Allure
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages-branch
-        continue-on-error: true   # la primera vez no existe gh-pages todavía
-
-      - name: Copiar historial al directorio de resultados
-        run: |
-          if [ -d "gh-pages-branch/history" ]; then
-            cp -r gh-pages-branch/history reports/allure-results/history
-          fi
-        continue-on-error: true
-
-      # ── 7. Generar el reporte HTML con Allure
-      - name: Instalar Allure CLI
-        run: |
-          curl -o allure.tgz -L https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
-          tar -zxf allure.tgz
+          wget https://github.com/allure-framework/allure2/releases/latest/download/allure-2.27.0.tgz
+          tar -zxvf allure-2.27.0.tgz
           sudo mv allure-2.27.0 /opt/allure
           sudo ln -s /opt/allure/bin/allure /usr/bin/allure
 
-      - name: Generar reporte Allure
+      - name: Run tests
         run: |
-          allure generate reports/allure-results \
-                 --output reports/allure-html \
-                 --clean
+          pip install -r requirements.txt
+          pytest --alluredir=allure-results
 
-      # ── 8. Publicar el reporte HTML en GitHub Pages
-      - name: Publicar en GitHub Pages
+      - name: Generate Allure Report
+        run: |
+          allure generate allure-results --clean -o allure-report
+
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: reports/allure-html
-          publish_branch: gh-pages
-          keep_files: false
+          publish_dir: ./allure-report
