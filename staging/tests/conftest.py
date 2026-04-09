@@ -46,7 +46,7 @@ def browser_context(browser_name):
         if browser_name == "chromium":
             if not os.path.exists(USER_DATA_DIR):
                 if os.path.exists(AUTH_FILE):
-                    temp = p.chromium.launch(headless=False)
+                    temp = p.chromium.launch(headless=True)
                     ctx  = temp.new_context(storage_state=AUTH_FILE)
                     ctx.storage_state(path=AUTH_FILE)
                     ctx.close()
