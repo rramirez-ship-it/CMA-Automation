@@ -59,7 +59,7 @@ def browser_context(browser_name):
 
             context = p.chromium.launch_persistent_context(
                 user_data_dir=USER_DATA_DIR,
-                headless=False,
+                headless=True,
                 viewport={"width": 1280, "height": 720},
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -87,7 +87,7 @@ def browser_context(browser_name):
                 ),
             }
 
-            browser = browser_type.launch(headless=False)
+            browser = browser_type.launch(headless=True)
             context = browser.new_context(
                 storage_state=AUTH_FILE,
                 viewport={"width": 1280, "height": 720},
